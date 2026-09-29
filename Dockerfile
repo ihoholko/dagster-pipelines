@@ -1,22 +1,20 @@
 FROM python:3.11-slim
 
-WORKDIR /deploy_k8s/
+WORKDIR /deploy_k8s
 
-
-
-# Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-
-# Install dagster and any other dependencies the project requires
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev
+
+RUN uv sync --frozen --no-dev --no-install-project
 
 COPY . .
 
+RUN uv sync --frozen --no-dev
 
 ENV PYTHONUNBUFFERED=1
 ENV PATH="/deploy_k8s/.venv/bin:$PATH"
 
-# Expose the port that your Dagster instance will run on
 EXPOSE 3030
+
+CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "3030", "--module-name", "dagster_pipelines.definitions"]
