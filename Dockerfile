@@ -1,22 +1,22 @@
 FROM python:3.11-slim
 
-# Copy your Dagster project. You may need to replace the filepath depending on your project structure
-COPY . /
+WORKDIR /deploy_k8s/
 
-# This makes sure that logs show up immediately instead of being buffered
-ENV PYTHONUNBUFFERED=1
+
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 
-# Install dagster and any other dependencies your project requires
+# Install dagster and any other dependencies the project requires
 COPY pyproject.toml uv.lock ./
-
 RUN uv sync --frozen --no-dev
 
+COPY . .
 
-WORKDIR /deploy_k8s/
+
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/deploy_k8s/.venv/bin:$PATH"
 
 # Expose the port that your Dagster instance will run on
 EXPOSE 3030
